@@ -1,2 +1,2 @@
 # CodSoft
-CodSoft Internship - Sep 19, 2024 batch
+CodSoft Internship - Sep 10, 2024 batch
