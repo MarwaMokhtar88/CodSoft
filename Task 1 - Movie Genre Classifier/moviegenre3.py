@@ -21,10 +21,9 @@ def preprocess_text(text):
     - Converting text to lowercase
     - Removing stopwords
     """
-    text = re.sub(r'\W', ' ', text)  # Remove non-word characters
-    text = re.sub(r'\d+', ' ', text)  # Remove digits
+    text = re.sub(r'\W', ' ', text) 
+    text = re.sub(r'\d+', ' ', text)  
     text = text.lower()  # Convert to lowercase
-    # Remove stopwords
     text = ' '.join([word for word in text.split() if word not in stop_words])
     return text
 
@@ -37,9 +36,9 @@ def read_train_txt(file_path):
     train_data = []
     with open(file_path, 'r', encoding='utf-8') as f:
         for line in f:
-            if line.strip():  # Skip empty lines
+            if line.strip():  
                 parts = line.strip().split(" ::: ")
-                if len(parts) == 4:  # Ensure it has 4 parts (ID, TITLE, GENRE, DESCRIPTION)
+                if len(parts) == 4:  
                     train_data.append({
                         'ID': parts[0],
                         'Title': parts[1],
@@ -67,7 +66,6 @@ def read_test_txt(file_path):
                     })
     return pd.DataFrame(test_data)
 
-# Load train and test data
 train_data = read_train_txt('train_data.txt')
 test_data = read_test_txt('test_data.txt')
 
@@ -80,64 +78,40 @@ X_train = train_data['cleaned_description']
 y_train = train_data['Genre']
 
 # Vectorize the text using TF-IDF
-tfidf_vectorizer = TfidfVectorizer(max_features=5000)  # Limit to top 5000 words for efficiency
+tfidf_vectorizer = TfidfVectorizer(max_features=5000)  
 X_train_tfidf = tfidf_vectorizer.fit_transform(X_train)
 X_test_tfidf = tfidf_vectorizer.transform(test_data['cleaned_description'])
 
-# =================== Naive Bayes Classifier ===================
+#  Naive Bayes Classifier 
 
 # Initialize the Naive Bayes classifier
 naive_bayes_model = MultinomialNB()
-
-# Train the model on the TF-IDF transformed training data
 naive_bayes_model.fit(X_train_tfidf, y_train)
-
-# Predict the genres of the test data
 test_data['Predicted_Genre_NB'] = naive_bayes_model.predict(X_test_tfidf)
-
-# Print the results
-print("----------- Naive Bayes Results -----------")
+print("Naive Bayes Results")
 y_pred_train_nb = naive_bayes_model.predict(X_train_tfidf)
 print(f"Naive Bayes Training Accuracy: {accuracy_score(y_train, y_pred_train_nb):.2f}")
 print("Classification Report for Naive Bayes:\n", classification_report(y_train, y_pred_train_nb))
 
-# --------------------------------------------------------------
-# =================== Logistic Regression Classifier ===================
-
-# Initialize the Logistic Regression classifier
-logistic_model = LogisticRegression(max_iter=1000)  # Allow for more iterations to ensure convergence
-
-# Train the model on the TF-IDF transformed training data
+#  Logistic Regression Classifier 
+logistic_model = LogisticRegression(max_iter=1000) 
 logistic_model.fit(X_train_tfidf, y_train)
-
-# Predict the genres of the test data
 test_data['Predicted_Genre_LR'] = logistic_model.predict(X_test_tfidf)
-
-# Print the results
-print("----------- Logistic Regression Results -----------")
+print("Logistic Regression Results")
 y_pred_train_lr = logistic_model.predict(X_train_tfidf)
 print(f"Logistic Regression Training Accuracy: {accuracy_score(y_train, y_pred_train_lr):.2f}")
 print("Classification Report for Logistic Regression:\n", classification_report(y_train, y_pred_train_lr))
 
-# --------------------------------------------------------------
-# =================== Support Vector Machine Classifier ===================
+#Support Vector Machine Classifier
 
-# Initialize the SVM classifier with a linear kernel (good for text data)
 svm_model = SVC(kernel='linear')
-
-# Train the model on the TF-IDF transformed training data
 svm_model.fit(X_train_tfidf, y_train)
-
-# Predict the genres of the test data
 test_data['Predicted_Genre_SVM'] = svm_model.predict(X_test_tfidf)
-
-# Print the results
-print("----------- SVM Results -----------")
+print("SVM Results")
 y_pred_train_svm = svm_model.predict(X_train_tfidf)
 print(f"SVM Training Accuracy: {accuracy_score(y_train, y_pred_train_svm):.2f}")
 print("Classification Report for SVM:\n", classification_report(y_train, y_pred_train_svm))
 
-# --------------------------------------------------------------
 # Save the predictions to separate text files for each classifier
 test_data[['ID', 'Title', 'Predicted_Genre_NB']].to_csv('predicted_genres_naive_bayes.txt', sep=' ::: ', index=False, header=False)
 test_data[['ID', 'Title', 'Predicted_Genre_LR']].to_csv('predicted_genres_logistic_regression.txt', sep=' ::: ', index=False, header=False)
